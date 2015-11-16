@@ -81,6 +81,131 @@ npm install method-override --save
 This is the end of level 1 of our webapp. Type in `npm start` in your console, and check `localhoset:3000` in your browser to make sure everything is looking right.
 
 
+### Models and Schemas
+Now we need to define our schema. Before we do that, I'm going to have to explain the application that I'll be working on. The model and schema will look different for your application.
+
+NOW is a website, where you input whatever you're doing at the moment, in the form of a hashtag, and it will tell you how many others around the world, are doing the same thing as you.
+
+We are going to use the model forlder that we created earlier to form out objects. Create a new file and call it the plural of whatever your object is going to be called. In my case it will be `activities.js`.
+
+Each `activity` is going to have a `tag`, `created`, `expires`, `isOn`, `count` field. Add the following code to the `activities.js` file.
+```js
+var mongoose = require('mongoose');
+var activitySchema = new mongoose.Schema({
+	tag: String,
+	created: Date,
+	expires: Date,
+	count: Number,
+	isOn: Boolean
+});
+```
+
+Make sure to add this file to your `app.js` right after the db variable.
+
+### Add the Contoller
+We will put all of our controller file under the routes folder of our directory, by convention.
+
+So create a file called `activities.js` under routes. In it we wiill define the dependecy packages first:
+```js
+var express = require('express'),
+	router = express.Router(),
+    mongoose = require('mongoose'), //mongo connection
+    bodyParser = require('body-parser'), //parses information from POST
+    methodOverride = require('method-override'); //used to manipulate POST
+```
+
+Next we will have to make sure every request goes through our method-override library. This code copied from method-override (read more about it online, if you wish).
+```js
+router.use(bodyParser.urlencoded({ extended: true }))
+router.use(methodOverride(function(req, res){
+      if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+        // look in urlencoded POST bodies and delete it
+        var method = req.body._method
+        delete req.body._method
+        return method
+      }
+}))
+```
+
+Now we have to start building our Creat, Read, Update, and Delete (CRUD) functionalities. Let's start with writing a `GET`ter that gets all the activities from the database and displays it.
+
+Include this code after the method-override in activity.js:
+```js
+router.route('/')
+	// GET all activities
+	.get(function(req, res, next) {
+		//retrieve the activities from mongo
+		mongoose.model('Activity').find({}, function (err, activities) {
+			if (err) {
+				return console.error(err);
+			} else {
+				res.format({
+					// html format response
+					html: function() {
+						res.render('activities/index', {
+							title: 'All activities',
+							"activities": activities
+						});
+					},
+					// json format response
+					json: function() {
+						res.json(infophotos);
+					}
+				})
+			}
+		})
+	})
+```
+
+So that's the getter. Now we need a way to create new entires in the db. So we need a POST function in the same router function. So add the following code after the end of the `get` function abve.
+```js
+// POST a new activity
+	.post(function (reg, res) {
+		 // Get values from POST request. These can be done through forms or REST calls. These rely on the "name" attributes for forms
+		 var tag = req.body.tag;
+		 var created = req.body.created;
+		 // 30 mins after created -- this doesn't come form forms
+		 // so we calculate the value here
+		 var expires = new Date(created.getTime() + diff*60000);
+		 // if the form is submitted jsut now, it is on!
+		 var isOn = true;
+		 var count = count + 1;
+
+		 // create an entry in the db
+		 mongoose.model('Activity').create({
+		 	tag: tag,
+		 	created: created,
+		 	expires: expires,
+		 	isOn: isOn,
+		 	count: count
+		 }, function (err, activity) {
+		 	if (err) {
+		 		res.send("There was a problem adding the entry to the DB!")
+		 	} else {
+		 		// Activity is created in the DB
+		 		console.log('POST creating new Activity: ', activity);
+		 		res.format({
+		 			//HTML response will set the location and redirect back to 
+		 			//the home page.
+		 			html: function () {
+		 				// set the header
+		 				res.location('activities');
+		 				// forward to success page
+		 				res.redirect('/activities');
+		 			},
+		 			// json res will show the newly added Activity
+		 			json: function () {
+		 				res.json(activity);
+		 			}
+		 		});
+		 	}
+		 })
+	});
+```
+
+
+
+
 
 
 
