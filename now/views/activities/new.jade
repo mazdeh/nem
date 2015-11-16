@@ -1,0 +1,10 @@
+extends ../layout
+
+block content
+	h1.
+		#{title}
+	form(name="addActivity", method="post", action="/activities")
+		p What Are You Doing Right Now?
+			input(type="text", name="tag")
+		p
+			button(type="submit") Submit

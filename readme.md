@@ -203,6 +203,129 @@ So that's the getter. Now we need a way to create new entires in the db. So we n
 	});
 ```
 
+So now we can create new activities by doing REST calls - which gets annoyinh real quick. So we're going to create a client side to this (a form) that will take route to the REST call and create new activities. We will build the actual form later on in under the `views` directory. But for now, let's include the following route in the `activity.js` file.
+```js
+router.get('/new', function (req, res) {
+	res.render('activities/new', {title: 'Add New Activity'});
+});
+```
+Note: if you don't really understand what is going on with the `router` you should check out my previous tutorial on `express.js`.
+
+Next we're going to write a helper function (middleware) that will ensure that we do have an entry for `:id` in the databse:
+```js
+router.param('id', function (req, res, next, id) {
+	console.log('validating ', id);
+	// find the id in the db
+	mongoose.model('Activity').findById(id, function (err, activity) {
+		if (err) {
+			console.log(id, 'wasn not fount');
+			res.status(400);
+			var err = new Error('Not Found');
+			err.status = 404;
+			res.format({
+				html: function () {
+					next(err);
+				},
+				json: function () {
+					res.json({message: err.status + ' ' + err});
+				}
+			});
+		} else {
+			req.id = id;
+			next();
+		}
+	})
+})
+```
+
+Now we need a way to grab an entry in the database by id. The function below will make a connection to our db, and look for an entry with the id specified.
+```js
+router.route('/:id')
+	.get(function (req, res) {
+		mongoose.model('Activity').findById(req.id, function (err, activity) {
+			if (err) {
+				console.log("GET Eroor: There was a problem retrieving: ", err);
+			} else {
+				console.log('GET Retreiving ID: ', activity._id);
+				var activityTag = activity.tag;
+				res.format({
+					html: function() {
+						res.render('activities/show' {
+							"activitytag": activitytag,
+							"activity": activity
+						})
+					},
+					json: function() {
+						res.json(activity);
+					}
+				})
+			}
+		})
+	})
+```
+
+Now we just need to export this module that contains all of our routes for now.
+```js
+module.exports = router;
+```
+
+We have just implemented the basic `GET` and `POST` REST functionalities of our website. Next we need our `app.js` to actually do the right things based on the routes we're on.
+
+### Add Routers
+If you haven't already `require`d the `activities.js` file in your `app.js`, make sure you do that.
+
+Now we need to define a route for express by doing:
+```js
+app.use('/activities', activities);
+```
+
+This means that when we go to the url `localhost:3000/activities`, the functions that we implemented in `activities.js` will be available to us.
+
+### Add Views
+Now we need to actually make our website render things. So let's dive into how we implement the views.
+
+Let's create our view files in a folder called `activities` under the `views` folder in our root directory. Don't touch any of the other files under `views`. 
+
+Note: for more information on how Jade works, check out their website.
+
+So let's start making some things appear on the screen. Create an `index.jade` file and place it into that folder we just created. Make sure you include `extends ../layout` at the beginning of this file. This is how Jade will know where to look for it's layout.
+
+Then create whatever Markup you desire and save the file.
+
+Now if you run `npm start` and go to `localhost:3000/activities` you should see all the activities listed on that page. You will see an empty list, of course. Because we haven't added anything to our DB yet.
+
+In order to do that we'd need to create a new page where we can insert things into the DB using the POST method that we wrote in the `activities.js` file.
+
+So create a form that corresponds to how your schema looks, and have it return to the activities page upon submission.
+
+Now if you've done it right, you should be able to see your entries showing up on the activities page.
+
+
+---
+This concludes our brief tutorial on how to create a simple web app using Node, Express, and MongoDB.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

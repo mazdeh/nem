@@ -1,0 +1,15 @@
+extends ../layout
+
+block content
+	h1.
+		#{title}
+	ul
+		- each activity, i in activities
+			li
+				= activity.tag
+				= activity.created
+				= activity.expires
+				= activity.isOn
+				= activity.count
+		p
+			a(href="/activities/new") New
