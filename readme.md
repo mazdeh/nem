@@ -4,6 +4,18 @@ If you don't know anything about Node, or Express, you should checkout my tutori
 
 In this tutorial we're going to connect a Node app with an Express server to a NoSQL database (mongodb).
 
+### Run Locally
+Clone this repository and run:
+```
+cd nem
+cd now
+npm install
+npm start
+```
+
+Go to `localhost:3000` to visit the live web app.
+
+
 ### Setup the Skeleton of Our Webapp
 I assume you have `npm` installed on your computer already.
 
@@ -303,8 +315,6 @@ Now if you've done it right, you should be able to see your entries showing up o
 
 ---
 This concludes our brief tutorial on how to create a simple web app using Node, Express, and MongoDB.
-
-
 
 
 
